@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { UploadCloud, CheckCircle, AlertCircle } from "lucide-react";
+import { UploadCloud, CheckCircle, AlertCircle, Mail } from "lucide-react";
 
 interface Props {
   onFileSelected: (file: File) => void;
+  onGmailSync: () => void;
 }
 
-export function StatementUploader({ onFileSelected }: Props) {
+export function StatementUploader({ onFileSelected, onGmailSync }: Props) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,19 +38,37 @@ export function StatementUploader({ onFileSelected }: Props) {
         </p>
       </div>
 
-      <div className="relative w-full px-4">
-        <input
-          type="file"
-          accept=".pdf"
-          onChange={handleFileUpload}
-          disabled={isProcessing}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
-        />
+      <div className="relative w-full px-4 space-y-4">
+        <div className="relative w-full">
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleFileUpload}
+            disabled={isProcessing}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+          />
+          <button 
+            disabled={isProcessing}
+            className="brutal-btn w-full text-lg tracking-widest flex items-center justify-center space-x-2"
+          >
+            <UploadCloud className="w-5 h-5 hidden sm:block" />
+            <span>{isProcessing ? "PROCESSING..." : "SELECT PDF FILE"}</span>
+          </button>
+        </div>
+
+        <div className="flex items-center space-x-4 w-full">
+          <div className="flex-1 border-b-[2px] border-brutal-black"></div>
+          <span className="font-mono text-xs font-bold uppercase text-gray-500">OR</span>
+          <div className="flex-1 border-b-[2px] border-brutal-black"></div>
+        </div>
+
         <button 
+          onClick={onGmailSync}
           disabled={isProcessing}
-          className="brutal-btn w-full text-lg tracking-widest"
+          className="brutal-btn w-full text-lg tracking-widest bg-white hover:bg-gray-100 flex items-center justify-center space-x-2"
         >
-          {isProcessing ? "PROCESSING..." : "SELECT PDF FILE"}
+          <Mail className="w-5 h-5 hidden sm:block text-brutal-black" />
+          <span>SYNC GMAIL RECEIPTS</span>
         </button>
       </div>
 
