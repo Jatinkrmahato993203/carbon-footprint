@@ -10,6 +10,22 @@ interface Props {
 const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#6B7280'];
 
 export function Dashboard({ transactions }: Props) {
+  if (!transactions || transactions.length === 0) {
+    return (
+      <div className="w-full max-w-xl mx-auto p-8 bg-brutal-white brutal-border brutal-shadow flex flex-col items-center justify-center space-y-6 text-center mt-8 pt-12 pb-12">
+        <div className="h-16 w-16 bg-neon text-brutal-black flex items-center justify-center brutal-border-light shadow-[4px_4px_0px_#080808]">
+          <ShieldCheck className="h-8 w-8" />
+        </div>
+        <div className="space-y-4">
+          <h2 className="text-2xl font-display uppercase tracking-wider text-brutal-black">No Transactions Found</h2>
+          <p className="text-sm font-mono font-bold text-gray-700 max-w-md">
+            The AI could not identify any valid debit transactions from your document.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const totalSpend = transactions.reduce((sum, t) => sum + t.amount, 0);
   const totalCO2 = transactions.reduce((sum, t) => sum + (t.co2 || 0), 0);
 

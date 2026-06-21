@@ -7,6 +7,10 @@ interface Props {
 }
 
 export function Recommendations({ transactions }: Props) {
+  if (!transactions || transactions.length === 0) {
+    return null;
+  }
+
   const totalTransport = transactions
     .filter(t => t.category === "Transport")
     .reduce((sum, t) => sum + t.amount, 0);
