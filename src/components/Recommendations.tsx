@@ -1,4 +1,3 @@
-import React from "react";
 import { Transaction } from "../types";
 import { Sparkles, ArrowRight, Zap } from "lucide-react";
 

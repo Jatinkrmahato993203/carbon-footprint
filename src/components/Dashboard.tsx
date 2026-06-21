@@ -1,4 +1,3 @@
-import React from "react";
 import { Transaction, Category } from "../types";
 import { IndianRupee, Leaf, CloudRain, ShieldCheck } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
