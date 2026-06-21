@@ -29,8 +29,8 @@ export function LandingPage() {
           transition={{ duration: 0.6 }}
           className="max-w-5xl"
         >
-          <h1 className="font-display text-7xl md:text-9xl leading-[0.85] uppercase tracking-tighter text-brutal-black mb-8">
-            See your<br/><span className="text-neon bg-brutal-black px-4 inline-block mt-4">shadow.</span>
+          <h1 className="font-display text-6xl md:text-8xl font-bold tracking-tight text-brutal-black mb-6">
+            See your shadow.
           </h1>
           <p className="font-mono text-lg md:text-xl max-w-2xl border-l-[6px] border-neon pl-6 uppercase font-bold text-gray-700 leading-relaxed mb-12">
             The invisible cost of convenience. Instantly translate your raw UPI and bank statements into your true financial and carbon footprint. No manual entry. No greenwashing.
