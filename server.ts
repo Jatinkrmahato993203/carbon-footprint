@@ -114,6 +114,43 @@ Output ONLY JSON array.`;
     }
   });
 
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { messages, userContext } = req.body;
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: "Invalid messages payload" });
+      }
+
+      const systemPrompt = `You are an AI financial and environmental coach inside the "Chhaya" application.
+The app analyzes Indian UPI and bank statements to reveal financial and carbon footprints.
+Adopt a "brutalist", direct, slightly cynical but ultimately helpful persona. 
+Provide short, punchy responses. Call out excessive spending and high-emissions behavior clearly.
+
+Here is the user's current transaction context (summarized):
+${JSON.stringify(userContext || {}, null, 2)}
+`;
+
+      const geminiMessages = messages.map((m: any) => ({
+        role: m.role === "user" ? "user" : "model",
+        parts: [{ text: m.content }]
+      }));
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+           { role: "user", parts: [{ text: systemPrompt }] },
+           { role: "model", parts: [{ text: "Understood. I am the Chhaya AI Coach." }] },
+           ...geminiMessages
+        ],
+      });
+
+      res.json({ reply: response.text });
+    } catch (error: any) {
+      console.error("AI Chat Request Failed:", error);
+      res.status(500).json({ error: "Failed to generate chat response" });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

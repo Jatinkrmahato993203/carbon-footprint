@@ -1,6 +1,7 @@
 import { Transaction, Category } from "../types";
-import { IndianRupee, Leaf, CloudRain, ShieldCheck } from "lucide-react";
+import { IndianRupee, Leaf, CloudRain, ShieldCheck, Flame, Medal } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { ChatWidget } from "./ChatWidget";
 
 interface Props {
   transactions: Transaction[];
@@ -39,8 +40,35 @@ export function Dashboard({ transactions }: Props) {
 
   const breakdownData = Object.values(breakdownMap).sort((a, b) => b.co2 - a.co2);
 
+  // Gamification Metrics
+  const streak = transactions.length > 5 ? 3 : transactions.length > 0 ? 1 : 0;
+  const unlocks = [];
+  if (totalCO2 < 100 && totalSpend > 0) unlocks.push("Eco Novice");
+  else if (totalCO2 < (totalSpend * 0.05)) unlocks.push("Carbon Ninja");
+  else unlocks.push("Transit Hero");
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 relative">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-4xl font-display uppercase tracking-wider text-brutal-black">Overview</h2>
+          <p className="font-mono text-sm uppercase text-gray-500 font-bold tracking-widest mt-1">LATEST STATEMENT ANALYSIS</p>
+        </div>
+        
+        {/* Gamification Badge Band */}
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 bg-brutal-black text-neon px-3 py-1 font-mono text-sm font-bold uppercase brutal-border-light shadow-[4px_4px_0_0_#000]">
+             <Flame className="w-4 h-4 text-orange-500" />
+             <span>{streak} Wk Streak</span>
+          </div>
+          {unlocks.length > 0 && (
+            <div className="flex items-center space-x-2 bg-brutal-white text-brutal-black px-3 py-1 font-mono text-sm font-bold uppercase border-2 border-brutal-black shadow-[4px_4px_0_0_#000]">
+               <Medal className="w-4 h-4 text-neon fill-current" />
+               <span>{unlocks[0]}</span>
+            </div>
+          )}
+        </div>
+      </div>
       
       {/* Top Level Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -142,7 +170,8 @@ export function Dashboard({ transactions }: Props) {
           ))}
         </div>
       </div>
-
+      
+      <ChatWidget transactions={transactions} />
     </div>
   );
 }
