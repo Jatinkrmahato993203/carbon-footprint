@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StatementUploader } from "./components/UploadPhase";
 import { Dashboard } from "./components/Dashboard";
 import { Recommendations } from "./components/Recommendations";
@@ -7,9 +7,28 @@ import { Transaction } from "./types";
 import { Leaf, Loader2 } from "lucide-react";
 
 export default function App() {
-  const [phase, setPhase] = useState<"upload" | "processing" | "dashboard">("upload");
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>(() => {
+    try {
+      const saved = localStorage.getItem("chhaya_transactions");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  
+  const [phase, setPhase] = useState<"upload" | "processing" | "dashboard">(
+    transactions.length > 0 ? "dashboard" : "upload"
+  );
+  
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("chhaya_transactions", JSON.stringify(transactions));
+    } catch (e) {
+      console.warn("Failed to save to localStorage", e);
+    }
+  }, [transactions]);
 
   const handleFileSelected = async (file: File) => {
     setPhase("processing");
@@ -47,7 +66,7 @@ export default function App() {
               }}
               className="font-mono text-sm font-bold uppercase bg-brutal-black text-brutal-white hover:bg-neon hover:text-brutal-black border-2 border-transparent hover:border-brutal-black transition-colors px-4 py-2"
             >
-              Restart
+              Clear Data
             </button>
           )}
         </nav>

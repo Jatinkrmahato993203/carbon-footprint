@@ -11,39 +11,60 @@ export function Recommendations({ transactions }: Props) {
     .filter(t => t.category === "Transport")
     .reduce((sum, t) => sum + t.amount, 0);
 
+  const transportCo2 = transactions
+    .filter(t => t.category === "Transport")
+    .reduce((sum, t) => sum + (t.co2 || 0), 0);
+
   const totalFood = transactions
     .filter(t => t.category === "Food & Dining")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // Generate dynamic recommendations based on AI categorization
+  const foodCo2 = transactions
+    .filter(t => t.category === "Food & Dining")
+    .reduce((sum, t) => sum + (t.co2 || 0), 0);
+
+  const totalUtilities = transactions
+    .filter(t => t.category === "Utilities & Bills")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const utilitiesCo2 = transactions
+    .filter(t => t.category === "Utilities & Bills")
+    .reduce((sum, t) => sum + (t.co2 || 0), 0);
+
   const insights = [];
 
-  if (totalTransport > 2000) {
+  if (totalTransport > 1000) {
     insights.push({
       title: "Switch to Metro vs Cabs",
       text: "You spent heavily on transport. Moving 50% of these to the metro reduces your footprint significantly.",
       savings: `₹${(totalTransport * 0.4).toFixed(0)}`,
-      co2Savings: `${(totalTransport * 0.08 * 0.7).toFixed(1)} kg CO₂` // Metro is 70% cleaner roughly
+      co2Savings: `${(transportCo2 * 0.6).toFixed(1)} kg CO₂` // Assuming cabs are much worse than metro
     });
   }
 
-  if (totalFood > 3000) {
+  if (totalFood > 2000) {
     insights.push({
         title: "Home Cooked Meals",
-        text: "Replacing just 3 food deliveries a week with home-cooked meals provides massive dual savings.",
-        savings: "₹1,200",
-        co2Savings: "5.2 kg CO₂"
+        text: "Replacing a portion of your food deliveries with home-cooked meals provides massive dual savings.",
+        savings: `₹${(totalFood * 0.3).toFixed(0)}`,
+        co2Savings: `${(foodCo2 * 0.3).toFixed(1)} kg CO₂`
     });
   }
 
-  if (insights.length === 0) {
+  if (insights.length < 2 || totalUtilities > 1000) {
+    const fallbackUtility = totalUtilities > 0 ? totalUtilities : 2500;
+    const fallbackCo2 = utilitiesCo2 > 0 ? utilitiesCo2 : 15;
+    
     insights.push({
         title: "Optimize Utility Usage",
         text: "A 10% reduction in electricity (turning off ACs an hour early) benefits both grids and wallets.",
-        savings: "₹250",
-        co2Savings: "3.5 kg CO₂"
+        savings: `₹${(fallbackUtility * 0.1).toFixed(0)}`,
+        co2Savings: `${(fallbackCo2 * 0.1).toFixed(1)} kg CO₂`
     });
   }
+
+  // Cap insights to essentially what's reasonable
+  const displayInsights = insights.slice(0, 2);
 
   return (
     <div className="mt-8 mb-16 space-y-4">
@@ -52,7 +73,7 @@ export function Recommendations({ transactions }: Props) {
         AI Trade-offs
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {insights.map((insight, idx) => (
+        {displayInsights.map((insight, idx) => (
           <div key={idx} className="bg-brutal-white brutal-border brutal-shadow p-6 relative group hover:bg-neon transition-colors">
             <div className="absolute top-0 right-0 bg-brutal-black text-neon text-xs font-mono font-bold px-2 py-1 brutal-border-b brutal-border-l border-brutal-black uppercase hidden sm:block">
               REC_0{idx + 1}

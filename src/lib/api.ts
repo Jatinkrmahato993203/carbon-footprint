@@ -1,4 +1,4 @@
-import { Transaction, Category, EMISSION_FACTORS } from "../types";
+import { Transaction, Category } from "../types";
 
 export async function processTransactions(raw: Transaction[]): Promise<Transaction[]> {
   // Batch up the requests to AI
@@ -12,16 +12,18 @@ export async function processTransactions(raw: Transaction[]): Promise<Transacti
     throw new Error("Classification failed");
   }
 
-  const categoryMappings: { id: string; category: Category }[] = await res.json();
-  const map = new Map(categoryMappings.map(item => [item.id, item.category]));
+  const categoryMappings: { id: string; category: Category; co2?: number }[] = await res.json();
+  const catMap = new Map(categoryMappings.map(item => [item.id, item.category]));
+  const co2Map = new Map(categoryMappings.map(item => [item.id, item.co2 || 0]));
 
   return raw.map(t => {
     // Default to 'Others' if AI didn't catch it
-    const cat = map.get(t.id) || "Others";
+    const cat = catMap.get(t.id) || "Others";
     return {
       ...t,
       category: cat,
-      co2: Number((t.amount * (EMISSION_FACTORS[cat] || EMISSION_FACTORS["Others"])).toFixed(2))
+      // Fallback co2 calculation removed since we expect it from API, but we'll use 0 if categorization fails
+      co2: co2Map.get(t.id) || 0
     };
   });
 }
@@ -54,7 +56,7 @@ export async function processPdfTransaction(file: File): Promise<Transaction[]> 
        ...t,
        id: t.id || crypto.randomUUID(),
        category: cat,
-       co2: Number((t.amount * (EMISSION_FACTORS[cat] || EMISSION_FACTORS["Others"])).toFixed(2))
+       co2: t.co2 || 0
      }
   });
 }

@@ -34,9 +34,12 @@ Your task is to take a batch of transaction descriptions and amounts from an Ind
 - "Others"
 
 Try to identify the merchant from typical Indian payment gateways/vendors (e.g. Swiggy, Zomato, Uber, Ola, Bescom, Amazon, Flipkart, Blinkit, Zepto, Paytm).
+Crucially, also estimate a specific realistic carbon footprint (kg CO2) for EACH transaction based on the nature of the description or merchant. For example, a flight will have a massive CO2 footprint compared to an auto-rickshaw ride, even if both are "Transport". Meat-heavy restaurants might have a higher footprint than a coffee shop, etc. Make an educated guess as the \`co2\` field.
+
 Return a JSON array where each object has these fields:
 "id" (exact string from input),
-"category" (one of the exact categories above).
+"category" (one of the exact categories above),
+"co2" (number, estimated kg CO2).
 
 Input Transactions:
 ${JSON.stringify(
@@ -45,7 +48,25 @@ ${JSON.stringify(
   2
 )}`;
 
-      const response = await ai.models.generateContent({
+      const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+      const callGenAIWithRetry = async (fn: () => Promise<any>, retries = 3): Promise<any> => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            return await fn();
+          } catch (err: any) {
+             if (i === retries - 1) throw err;
+             if (err?.message?.includes("503") || err?.status === 503 || err?.status === "UNAVAILABLE") {
+               const sleepTime = Math.pow(2, i) * 1000 + Math.random() * 1000;
+               console.log(`Gemini API 503 Unavailable. Retrying in ${Math.round(sleepTime)}ms...`);
+               await delay(sleepTime);
+             } else {
+               throw err;
+             }
+          }
+        }
+      };
+
+      const response = await callGenAIWithRetry(() => ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -57,13 +78,15 @@ ${JSON.stringify(
               properties: {
                 id: { type: Type.STRING },
                 category: { type: Type.STRING },
+                co2: { type: Type.NUMBER },
               },
-              required: ["id", "category"],
+              required: ["id", "category", "co2"],
             },
           },
           temperature: 0.1,
         },
-      });
+      }));
+
 
       const text = response.text;
       if (!text) throw new Error("Empty response from AI");
@@ -95,16 +118,37 @@ For each transaction, classify it into one of the following exact categories:
 - "Others"
 
 Try to identify the merchant from typical Indian payment gateways/vendors (e.g. Swiggy, Zomato, Uber, Ola, Bescom, Amazon, Flipkart, Blinkit, Zepto, Paytm).
+Crucially, also estimate a specific realistic carbon footprint (kg CO2) for EACH transaction based on the nature of the description or merchant, rather than using a flat category multiplier. For example, a flight will have a massive CO2 footprint compared to an auto-rickshaw ride, even if both are "Transport". Meat-heavy restaurants might have a higher footprint than a coffee shop, etc. Make an educated guess as the \`co2\` field.
+
 Return a JSON array of objects where each object has these fields:
 "id" (generate a unique string or use a reference number),
 "date" (string representing the transaction date),
 "description" (string, the merchant or narration),
 "amount" (number, positive decimal value),
-"category" (one of the exact categories above).
+"category" (one of the exact categories above),
+"co2" (number, the estimated kg CO2 for this specific transaction).
 
 Output ONLY JSON array.`;
 
-      const response = await ai.models.generateContent({
+      const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+      const callGenAIWithRetry = async (fn: () => Promise<any>, retries = 3): Promise<any> => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            return await fn();
+          } catch (err: any) {
+             if (i === retries - 1) throw err;
+             if (err?.message?.includes("503") || err?.status === 503 || err?.status === "UNAVAILABLE") {
+               const sleepTime = Math.pow(2, i) * 1000 + Math.random() * 1000;
+               console.log(`Gemini API 503 Unavailable. Retrying in ${Math.round(sleepTime)}ms...`);
+               await delay(sleepTime);
+             } else {
+               throw err;
+             }
+          }
+        }
+      };
+
+      const response = await callGenAIWithRetry(() => ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [
           {
@@ -132,13 +176,14 @@ Output ONLY JSON array.`;
                 description: { type: Type.STRING },
                 amount: { type: Type.NUMBER },
                 category: { type: Type.STRING },
+                co2: { type: Type.NUMBER },
               },
-              required: ["id", "date", "description", "amount", "category"],
+              required: ["id", "date", "description", "amount", "category", "co2"],
             },
           },
           temperature: 0.1,
         },
-      });
+      }));
 
       const text = response.text;
       if (!text) throw new Error("Empty response from AI");

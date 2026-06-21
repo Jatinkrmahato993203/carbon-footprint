@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { UploadCloud, CheckCircle, AlertCircle } from "lucide-react";
 
 interface Props {
-  onFileSelected: (file: File) => void;
+  onFileSelected: (file: File) => Promise<void>;
 }
 
 export function StatementUploader({ onFileSelected }: Props) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -20,8 +20,13 @@ export function StatementUploader({ onFileSelected }: Props) {
 
     setIsProcessing(true);
     setError(null);
-    onFileSelected(file);
-    setIsProcessing(false);
+    try {
+      await onFileSelected(file);
+    } catch (err: any) {
+      setError(err.message || "Failed to process PDF.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -33,7 +38,7 @@ export function StatementUploader({ onFileSelected }: Props) {
       <div className="space-y-4 w-full">
         <h2 className="text-3xl font-display uppercase tracking-wider text-brutal-black">Upload Statement</h2>
         <p className="text-sm font-mono border-l-[4px] border-neon pl-4 text-left max-w-sm mx-auto font-bold text-gray-700">
-          Upload a PDF statement. Data is processed ethereally—no raw transactions are saved.
+          Upload a PDF statement. Data is sent to Google's Gemini API for processing and is not saved to any local or cloud database after analysis.
         </p>
       </div>
 
